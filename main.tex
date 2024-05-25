@@ -26,15 +26,16 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \setcopyright{none}
-\copyrightyear{2021}
-\acmYear{2021}
+\copyrightyear{2024}
+\acmYear{2024}
 \acmDOI{}
 \acmPrice{}
 \acmISBN{}
 
 \title{Algorithm Engineering Seminar: }
-\author{your name}
-\email{your email, field of study and matrikelnumber}
+\author{Eric Waldherr}
+\email{ft278@stud.uni-heidelberg.de, Computer Science,
+4231309}
 \affiliation{%
   \institution{Heidelberg University}
   \streetaddress{Im Neuenheimer Feld 205}
@@ -45,7 +46,7 @@
 }
 
 
-\date{}
+\date{10th of July 2024}
 
 \begin{document}
 
@@ -55,7 +56,29 @@ Insert abstract here.
 \maketitle
 
 \section{Introduction}
-insert text here
+Over the last decades graphs have become a very important data structure that are used to save data
+and run algorithms on in the modern era of computer science. Companies like Google, Facebook or Amazon use graphs with millions to billions of vertices and edges to save and compute data.\\ 
+This trend of graphs getting larger and larger leads to the problem that one machine alone can not run computations on this huge data sets, because they just need to much memory. This is why the graph partitioning problem became more and more present over the time as these huge graphs need to be partitioned so that algorithms can run on multiple machines at a time. For that reason every algorithm that is computed on huge data sets and every parallel algorithm on graphs faces the graph partitioning problem at some point.\\ 
+In the following chapters this problem is first explained in detail in Section 2, then there is an overview of different approaches on solving the problem is presented in Section 3. Finally there is a detailed explanation of the algorithm proposed in the paper which is also the main focus of this report in Section 4. At this point it should be noted that the most information used in this report is taken from that paper as well and this report is explaining and summarizing the paper. This report closes with a summary of the most important lessons that can be learned from this paper and this report.
+\section{The Graph Partitioning Problem}
+This chapter focuses on explaining the graph partitioning problem and giving the most important definitions needed to understand the following chapters.\\
+\section{Different Approaches to solve the graph partitioning problem}
+The following subchapters give an overview of the most important approaches to solve the graph partitioning problem
+\subsection{FL and KM algorithms}
+\subsection{Multilevel approach}
+\subsection{Label Propagation approach}
+\section{Detailed description of a LP based algorithm}
+This section focuses on the proposed algorithm of the paper. The algorithm is a LP based approach of solving the graph partitioning problem. The algorithm consists of three phases.\\
+First the LP phase, which is called Quick converging LP (QCLP) in the paper. Its goal is conducting a LP phase, but only on the most important vertices to reduce the run time of the algorithm.\\
+To avoid that the first phase got stuck in a local optima, the next phase, the stabilization phase, is run\\
+Finally to keep the final partition in the given vertex and edge balance constraints the last phase ensures that the constraints are fulfilled at the cost of edge cut quality.\\
+In the following subchapters the initial computations of the algorithm as well as the three phases are explained in detail.
+\subsection{Initial steps}
+\subsection{LP process}
+\subsection{Stabilization phase}
+\subsection{Edge balancing phase}
+\subsection{Evaluation of the algorithm}
+\section{Conclusion}
 \bibliographystyle{plainnat}
 \bibliography{references.bib}
 
