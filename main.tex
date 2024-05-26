@@ -62,9 +62,18 @@ This trend of graphs getting larger and larger leads to the problem that one mac
 In the following chapters this problem is first explained in detail in Section 2, then there is an overview of different approaches on solving the problem is presented in Section 3. Finally there is a detailed explanation of the algorithm proposed in the paper which is also the main focus of this report in Section 4. At this point it should be noted that the most information used in this report is taken from that paper as well and this report is explaining and summarizing the paper. This report closes with a summary of the most important lessons that can be learned from this paper and this report.
 \section{The Graph Partitioning Problem}
 This chapter focuses on explaining the graph partitioning problem and giving the most important definitions needed to understand the following chapters.\\
+Input of the problem is a Graph $G = (V,E)$.\\
+If $G$ is weighted, the edges $e\in E$\ have weights $c(e)\in \mathbb{R} $.
+To solve the problem $G$ needs to be partitioned into $k\in \mathbb{N}$\ partitions $V_{1},...,V_{k}$ such that $V_{1}\cup...\cup V_{k} = V\ and\ V_{i}\cap V_{j} = \emptyset\ \forall i,j\in \{1,...,k\}$.\\
+An important aspect is the edge cut quality, both with unweighted and weighted graphs. That means the partitioning algorithm needs to minimize 
+$\sum c((u,v)) : u\in V_{i},\ v\in V_{j}\ and\ i\neq j$ \ or $\vert \{(u,v)\in E : u\in V_{i},\ v\in V_{j}\ and\ i\neq j \}\vert$ \ respectively.\\
+As the partitioning is often done to prepare a graph for a parallel algorithm, these partitions need to be balanced. This means that $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ < \lceil \frac{\vert V \vert }{k} \rceil $. This reduces the amount of communication needed between the different partitions, which is the amount of communication between different processing machines in the context of parallelization.
 \section{Different Approaches to solve the graph partitioning problem}
-The following subchapters give an overview of the most important approaches to solve the graph partitioning problem
+The following subchapters give an overview of the most important approaches to solve the graph partitioning problem.
 \subsection{FL and KM algorithms}
+This approach divides the graph in k partitions at random initially.
+Then, for every vertex the amount of edges inside the same partition and outside of its partition are computed. With that information it is clear whether a node should stay in its current partition or if it should be relocated into another partition. This process is repeated until no more relocations of vertices that would improve the quality of the partition can be found.\\
+This approach has the problem that it gets stuck in a local optimum easily. In addition to that, there could be a beneficial swap of vertices for the edge cut quality even if the computation says otherwise.
 \subsection{Multilevel approach}
 \subsection{Label Propagation approach}
 \section{Detailed description of a LP based algorithm}
