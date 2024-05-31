@@ -70,16 +70,23 @@ $\sum c((u,v)) : u\in V_{i},\ v\in V_{j}\ and\ i\neq j$ \ or $\vert \{(u,v)\in E
 As the partitioning is often done to prepare a graph for a parallel algorithm, these partitions need to be balanced. This means that $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ < \lceil \frac{\vert V \vert }{k} \rceil $. This reduces the amount of communication needed between the different partitions, which is the amount of communication between different processing machines in the context of parallelization.
 \section{Different Approaches to solve the graph partitioning problem}
 The following subchapters give an overview of the most important approaches to solve the graph partitioning problem.
-\subsection{FL and KM algorithms}
+\subsection{Score based approach}
 This approach divides the graph in k partitions at random initially.
 Then, for every vertex the amount of edges inside the same partition and outside of its partition are computed. With that information it is clear whether a node should stay in its current partition or if it should be relocated into another partition. This process is repeated until no more relocations of vertices that would improve the quality of the partition can be found.\\
 This approach has the problem that it gets stuck in a local optimum easily. In addition to that, there could be a beneficial swap of vertices for the edge cut quality even if the computation says otherwise.
 \subsection{Multilevel approach}
+This approach consists of three phases. \\
+First there is the coarsening phase. This reduces the size of the graph by contracting connectivity information. All of this information needs to be saved in order to get the whole graph together again in the later stages of the algorithm. For that reason, one disadvantage of the multilevel approach is the high memory usage, which is important in the later chapters of this report.\\
+Then the next phase begins, which is the initial partition step. Now the reduced graph is partitioned into k parts. After this step is done, what is left to do is to take the other vertices, that have been ignored so far, into consideration.\\
+This is done in the final step, the uncoarsening phase. This step often includes heuristics and includes can include a swapping process that is similar to the swapping process of the score based approach. Now the original graph is reconstructed with the saved connectivity information. This phase ends with the whole graph partitioned into k partitions.
 \subsection{Label Propagation approach}
+A very detailed view of a LP approach will be given with the algorithm proposed in the paper. For that reason this chapter only describes the general LP approach in a high-level view.\\
+Initially the graph is partitioned over the given machines. The LP approach consists of many iterations. In each iterations all vertices are assigned a score that describes, whether the node should be swapped into another partition or stay in the current partition. Then the vertices with an according score are relocated to another partition. This is often done until there is no more improvement to be found by using the scores.\\
+The original LP approach does not guarantee a balanced partition. A balancing is often needed in modern applications making this fact a disadvantage of the original LP approach.
 \section{Detailed description of a LP based algorithm}
 This section focuses on the proposed algorithm of the paper. The algorithm is a LP based approach of solving the graph partitioning problem. The algorithm consists of three phases.\\
 First the LP phase, which is called Quick converging LP (QCLP) in the paper. Its goal is conducting a LP phase, but only on the most important vertices to reduce the run time of the algorithm.\\
-To avoid that the first phase got stuck in a local optima, the next phase, the stabilization phase, is run\\
+To avoid that the first phase got stuck in a local optima, the next phase, the stabilization phase, is run.\\
 Finally to keep the final partition in the given vertex and edge balance constraints the last phase ensures that the constraints are fulfilled at the cost of edge cut quality.\\
 In the following subchapters the initial computations of the algorithm as well as the three phases are explained in detail.
 \subsection{Initial steps}
