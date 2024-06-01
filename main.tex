@@ -89,8 +89,18 @@ First the LP phase, which is called Quick converging LP (QCLP) in the paper. Its
 To avoid that the first phase got stuck in a local optima, the next phase, the stabilization phase, is run.\\
 Finally to keep the final partition in the given vertex and edge balance constraints the last phase ensures that the constraints are fulfilled at the cost of edge cut quality.\\
 In the following subchapters the initial computations of the algorithm as well as the three phases are explained in detail.
-\subsection{Initial steps}
-\subsection{LP process}
+\subsection{Definitions} % maxbe number partitions?
+First of all, there are a few definitions that are essential to understand the algorithm. \\
+Every vertex has a vertex partition score (VP Score). The VP Score of vertex $v_{i}$ \ is defined as \[VP\ Score(v_{i})\ =\ v_{il}\ -\ v_{ir}\] where $v_{il}$ is the number of edges of $v_{i}$ to vertices inside of the same partition (local edges) and $v{ir}$ is the number of remote edges, which are edges to vertices of other partitions. Generally, the higher the VP Score of a vertex the more likely it will end up its current partition.\\
+The graph as a whole gets a score, the Total Score (T Score). This represents the quality of the current partition and is defined as follows. \[T\ Score\ =\ \sum_{v\in V} VP\ Score(v)  \]
+It is notable that when the edge cut of the partition decreases, the T score increases, meaning that a higher T Score indicates a higher edge cut quality.\\
+The algorithm only focuses on the most important vertices per step, called candidate vertices. In the first phase, the QCLP process, candidate vertices are the vertices that are inside of the set of local lower score vertices (LLSV). The LLSV of a partition $p_{i}$ is defined as \[LLSV(p_{i})\ =\ \{ m\in \mathbb{N}\ \text{vertices with the }m\text{-lowest scores in}\ p_{i}\}\] where $m$ is decreasing during the course of the algorithm. \\
+During the second phase of the algorithm candidate vertices are vertices that are inside of the set of high connectivity to remote vertices (HCRV). HRCV of a partition $p_{i}$ is defined as 
+\[HRCV(p_{i})\ =\ \{m\in \mathbb{N}\ \text{vertices with the }m\text{-highest amount of edges to remote vertices in}\ p_{i}\} \]
+\subsection{Data structure}
+In general the algorithm uses two types of data, shared and local data. Initially the graph is randomly distributed among the machines used for the partition. The resulting information of the vertices and edges of each machine makes up the local data of the individual machine. It is important to state that this initial partition is immutable, meaning that once the vertices are distributed among the machines, they are not relocated to the local data of another machine, only the information that they swapped partitions is passed. The shared data, meaning information that is shared among all machines, consists of the LLSV, the HCRV of each partition and a table that contains the information for each vertex, which partition it is currently in and which VP Score it is currently assigned.
+\subsection{QCLP process}
+This part of the algorithm is executed in iterations and on each machine individually. In each iteration the VP Score of the vertices in LLSV and their neighbors is recalculated. In the original LP approach the score of all vertices is recalculated each iteration. Here, this is only done on the stated vertices to safe computation time which is the bottleneck in this step of the algorithm.  
 \subsection{Stabilization phase}
 \subsection{Edge balancing phase}
 \subsection{Evaluation of the algorithm}
