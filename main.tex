@@ -34,7 +34,7 @@
 \acmPrice{}
 \acmISBN{}
 
-\title{Algorithm Engineering Seminar: Label Propagation-Based Parallel Graph-Partitioning for Large-Scale Graph Data}
+\title{Algorithm Engineering Advanced Practical: Analysing the Impact of Graph Partitioning on Graph Neural Network Training}
 \author{Eric Waldherr}
 \email{ft278@stud.uni-heidelberg.de, Computer Science,
 4231309}
@@ -53,122 +53,34 @@
 \begin{document}
 
 \begin{abstract}
-Graph data and parallelization of algorithms have become more and more important over time. Additionally, graphs are getting larger and are used to store data in a variety of applications. This leads to the rising importance of graph partitioning because high quality graph partitioning can lead to a huge improvement in the performance of algorithms run on the partition. In this report, a label propagation based algorithm is examined that differs from the original label propagation approach. This algorithm achieves very high performance, especially on limited memory resources, where it outperforms popular partitioning frameworks in terms of speed and balance.
+Abstract here.
 \end{abstract}
 \maketitle
 
 \section{Introduction}
-Over the last few decades, graphs have become a crucial data structure to store data in the modern era of computer science \cite{Junghanns2017}. Companies like Google, Facebook, or Amazon use graphs with millions to billions of vertices and edges to store and compute data. This trend of graphs getting larger and larger leads to the problem that a singular machine cannot run computations on these huge data sets due to a lack of memory. This is why the graph partitioning problem became more and more present over time, as these huge graphs need to be partitioned in order to run algorithms on multiple machines in parallel. For that reason, every algorithm that is computed on these huge data sets and every parallel algorithm on graphs faces the graph partitioning problem at some point. \\
-This report summarizes the contents of the publication "Label Propagation-Based Parallel Graph-Partitioning for Large-Scale Graph Data" \cite{Main} and evaluates the proposed graph partitioning algorithm in that paper. First, the structure of the graph partitioning problem is explained in detail in Section \numprint{2}. Then an overview of different approaches to solving the problem is presented in a high-level view in Section \numprint{3}. Section \numprint{4} provides a detailed explanation of the algorithm proposed in the paper. Next, the experimental environment is presented in which the algorithm was compared to other partitioners, followed by an evaluation of the algorithm in Section \numprint{5}. Finally, this report concludes with an overall picture of the algorithm in Section \numprint{6}.
-\section{The Graph Partitioning Problem}
-\begin{figure}[t]
+
+\section{Preliminaries}
+This chapter focuses on giving the most important definitions needed to understand the following chapters. Let $G=(V,E)$ be a graph, with $V$ as a set of vertices and $E \subseteq V \times V$ as a set of edges.
+\subsection{Graph Partitioning}
+The graph partitioning problem is a very fundamental problem in modern computer science as graphs. By partitioning a huge graph first before running a algorithm on it one can run algorithms on the resulting partitions in parallel. This and the quality of the partition itself can have a significant impact of the runtime of an algorithm. \\ 
+The input of the problem is a graph $G = (V,E)$ and $k\in \mathbb{N}$. To solve the problem, $G$ needs to be partitioned into $k$ partitions \hbox{$V_{1},...,V_{k}$ such that $V_{1}\cup...\cup V_{k} = V$} and $V_{i}\cap V_{j} = \emptyset\ \forall i,j\in \{1,...,k\}, i \neq j$. The main goal of the partitioning algorithm is to minimize the edge cut, which can be defined as $\vert \{(u,v)\in E : u\in V_{i},\ v\in V_{j} \text{ and } i\neq j \}\vert$. This reduces the amount of communication workload needed between the different workers and can significantly reduce the execution time of operations or algorithms run on the partitioned graph.  \\
+As partitioning is often done to prepare a graph for a parallel algorithm, these partitions need to be balanced to distribute the resulting computation workload equally among the computation units. For that reason, the problem includes a vertex balancing restriction: $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ \leq (1 + \delta) \lceil \frac{\vert V \vert }{k} \rceil $, with $\delta \in \mathbb{R}$ called vertex imbalance. Figure \ref{partition} shows a balanced partition. \\
+Often, it can be beneficial to balance the edges of the graph as well. This is done by assigning the nodes their outdegree + 1 as weight. The outdegree of a node $v_{i}$ is defined as $deg(v_{i}) = \sum{(u,v)\in E : u = v_{i} \vee v = v_{i}}$
+\begin{figure}[bt!]
 \centering
 \caption{Example of a balanced partition}
 \label{partition}
 \includegraphics[width=4.75cm,height=2.5cm]{partition_example.png}
 \end{figure}
-This chapter focuses on explaining the graph partitioning problem and giving definitions needed to understand the following chapters. The input of the problem is a graph $G = (V,E)$ and $k\in \mathbb{N}$. To solve the problem, $G$ needs to be partitioned into $k$ partitions \hbox{$V_{1},...,V_{k}$ such that $V_{1}\cup...\cup V_{k} = V$} and $V_{i}\cap V_{j} = \emptyset\ \forall i,j\in \{1,...,k\}, i \neq j$. The main goal of the partitioning algorithm is to minimize the edge cut, which can be defined as $\vert \{(u,v)\in E : u\in V_{i},\ v\in V_{j} \text{ and } i\neq j \}\vert$. This reduces the amount of communication workload needed between the different workers and can significantly reduce the execution time of operations or algorithms run on the partitioned graph.  \\
-As partitioning is often done to prepare a graph for a parallel algorithm, these partitions need to be balanced to distribute the resulting computation workload equally among the computation units. For that reason, the problem includes a vertex balancing restriction: $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ \leq (1 + \delta) \lceil \frac{\vert V \vert }{k} \rceil $, with $\delta \in \mathbb{R}$ called vertex imbalance. Figure \ref{partition} shows a balanced partition. \\
-Many algorithms include computations that focus on the edges of a graph. Therefore, a edge balancing restriction is common to further balance the computation workload: \\ $\forall i\in \{1,...,k\} : \vert (u,v)\in E : u \text{ or } v \in V_{i} \vert \ \leq (1 + \epsilon) \lceil \frac{\vert E \vert }{k} \rceil $, with $\epsilon \in \mathbb{R}$ called edge imbalance.
-\section{Different Approaches to Solving the Graph Partitioning Problem}
-The following subchapters give an overview of common approaches to solving the graph partitioning problem from a high-level perspective.
-\subsection{Local search score based approach}
-This approach often divides the graph into $k$ partitions at random in the beginning. Then, for every vertex, the number of edges inside and outside the same partition is computed. With that information, it is clear whether a vertex should stay in its current partition or if it should be relocated to another partition. This process is repeated until no more relocations of vertices that would improve the quality of the partition can be found. This general idea is used in the Fiduccia-Mattheyses \cite{FM} and the Kernigham-Lin \cite{KL} algorithms, which are popular score based approaches. One issue with the score based approach is that it can get stuck in a local optimum. In addition to that, there could be a beneficial relocations of vertices for the edge cut quality, even if the computation based on \hbox{the scores says otherwise.}
-\subsection{Multilevel approach}
-The multilevel approach generally consists of three phases. First there is the coarsening phase. This reduces the size of the graph by contracting connectivity information. All of this information needs to be stored in order to reproduce the whole graph in the later stages of the algorithm. For that reason, one disadvantage of the multilevel approach is the high memory usage, which is important in Section \numprint{5} of this report. Then the next phase begins, which is the initial partition step. Now the reduced graph is partitioned into $k$ parts. After this step is done, the remaining task consists of taking the rest of the vertices into consideration. This is done in the final step, the uncoarsening phase. This step often includes heuristics and can include a swapping process that is similar to the swapping process of the score based approach. Now the original graph is reconstructed with the stored connectivity information and partitioned into $k$ parts. Metis \cite{Metis} is a popular partitioning framework that uses this approach.
-\subsection{Label propagation approach}
-A detailed view of a label propagation (LP) approach is provided with the algorithm proposed in the paper \cite{Main} in Section \numprint{4}. For that reason, this chapter only describes the algorithm from a high-level perspective. Initially, the graph is partitioned over the given machines randomly. The LP approach consists of many iterations. In each iteration, all vertices are assigned a score that describes whether the vertex should be swapped into another partition or stay in the current partition. Next, the vertices with an appropriate score are relocated to another partition. This is done until there is no significant improvement to the edge cut for the last few iterations. How this process works in detail is stated in the next chapter.
-\section{Detailed description of a Label Propagation based algorithm}
-This section explains the technical details of the proposed algorithm in the paper \cite{Main}. The algorithm is a LP based approach to solving the graph partitioning problem. The algorithm consists of three phases. In the following subchapters, the important definitions, the initial computations of the algorithm, and the three phases are explained in detail.
-\subsection{Definitions}
-First of all, there are a few definitions that are essential for understanding the algorithm that are presented in this chapter. To every vertex, a Vertex Partition Score (VP Score) can be assigned. The VP Score of vertex $v_{i}$ \ is defined as VP Score$(v_{i})\ =\ v_{il}\ -\ v_{ir}$ , where $v_{il}$ is the number of edges of $v_{i}$ to vertices inside of the same partition (local edges) and $v_{ir}$ is the number of remote edges, which are edges to vertices of other partitions (remote edges). An example of that is illustrated in Figure ~\ref{vp_score}. Generally, the higher the VP Score of a vertex, the more appropriate it is in its current partition. This is the case because a high VP Score means a high amount of local vertices, per definition. Relocating such a vertex would result in a high increase in edge cut, as all the edges to local vertices would then be included in the edge cut. At the same time, this means that relocating a vertex with a low VP Score likely decreases the edge cut, which is the main idea of the algorithm. \\
-To measure the edge cut quality of the graph, a Total Score (T Score) is calculated. This represents the quality of the current partition and is defined as T Score $=\ \sum_{v\in V} VP\ Score(v)$. It is notable that when the edge cut of the partition decreases, the T Score increases as it is connected to the amount of remote vertices that are in a graph. That means that a higher T Score \hbox{indicates a higher edge cut quality.} \\
-The algorithm only focuses on the most important vertices per step, called candidate vertices. In the first phase, the quick converging label propagation (QCLP) process, candidate vertices are the vertices that are inside the set of local lower score vertices (LLSV). The LLSV of a partition $p_{i}$ is defined as LLSV$(p_{i})\ =\ \{ d\in \mathbb{N}\ \text{vertices with the }d\text{-lowest scores in}\ p_{i}\}$, where $d$ is decreasing during the course of the algorithm. During the second phase of the algorithm, candidate vertices are vertices that are inside the set of high connectivity to remote vertices (HCRV). How this set of vertices is determined is complex and is therefore explained in detail in Section \numprint{4}.\numprint{4}.
-\begin{figure}[bt!]
-     \centering
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3 cm]{score_example.png}
-         \caption{Example VP Score}
-         \label{vp_score}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3cm]{datastructure.png}
-         \caption{Used data structure}
-         \label{data_structure}
-     \end{subfigure}
-     \caption{Illustration of VP Score and data structure}
-     \label{combi}
-\end{figure}
-\subsection{Data structure}
-To understand the algorithm in detail, it is important to have the used data structure in mind. In this section, the used data structure will be explained and can be seen in Figure \ref{data_structure}. \\
-In general, the algorithm uses two types of data: shared and local. Initially, the graph is randomly distributed among the machines used for the partition. The resulting information about the vertices and edges of each machine makes up the local data of that individual machine. It is important to state that this initial partition is immutable, meaning that once the vertices are distributed among the machines, they are not relocated to the local data of another machine. Only the information that they swapped partitions is passed. The shared data, consisting of information that is shared among all machines through communication, consists of the LLSV or HCRV of each partition and a table that contains the information for each vertex, which partition, and which \hbox{VP Score it is currently assigned to.}
-\subsection{Quick converging label propagation}
-\begin{figure}[b]
-\centering
-\caption{Illustration of a QCLP iteration}
-\label{iteration}
-\includegraphics[width=9.35cm,height=5cm]{qclp_iteration.png}
-\end{figure}
-This process is the main stage of the algorithm. This phase is deducted from every machine used with its respective local data. The first detail lies in the calculation of the VP Score. Initially, the VP Scores of all vertices are calculated. In each of the following iterations, only the VP Score of the vertices in LLSV and their neighbors is recalculated. This is done to save computation time, which is crucial in this step of the algorithm. Additionally, the calculation of the VP Score ignores vertices that are currently part of the LLSV. This is done as the vertices in the LLSV are likely going to be relocated in the next iteration. Thus, including them in the calculation would lead to decisions made \hbox{based on data that could be outdated.} 
-\\
-Another important aspect to take a look at is the communication structure used for this algorithm. It is called the bulk synchronous parallel style lazy update scheme \cite{BSP}. This is supposed to solve the problem of the trade-off that is occurring here. More communication increases the communication overhead but at the same time improves the calculation of the VP Score, thus leading to a higher partition quality. This communication paradigm  results in the fact that only crucial information is shared when significant changes are made or at critical steps of the algorithm. \\
-Furthermore, this phase is called QCLP because the size of LLSV is reduced with each iteration, ensuring that it converges quickly. Each iteration of this phase works as follows: First, the size of the LLSV is decreased. Then the vertices for the new LLSV are found, and the LLSV is shared with the other machines. Afterwards, the vertices of the LLSV are relocated according to their VP Scores. Next, the VP Score is calculated for LLSV and its neighborhood. After that, the updated vertex location is shared with the other workers as well as the VP Scores of the neighbors of the relocated vertex. The VP Scores of vertices in the LLSV are then updated again, as many of them have changed partitions. Finally, the local T Score is calculated and shared, making up the overall T Score with the results of the other workers. This ends the current iteration, and the next begins. Figure \ref{iteration} illustrates the most important steps of each iteration. In general, this phase is done for at least $\alpha$ iterations. After that limit is reached, this phase continues until the T Score has not improved for $\beta$ iterations for $c$ percent. The parameters ~$\alpha,\beta$ and $c$ are user-specified. \\
-In conclusion, this main phase of the algorithm keeps near-perfect vertex balance in the process. However, it is important to note that this phase does not lead to an optimal solution and can end up getting trapped in a local optimum. This phase only ensures an edge balance within two times of the edge balance restriction. Both of these issues are addressed by the following \hbox{phases of the algorithm.}
-\subsection{Stabilization phase}
-This second phase of the algorithm is designed to resolve the potential problem that the QCLP phase got trapped in a local optimum. This phase works almost the same as the QCLP phase. The main difference is that now vertices of the HCRV are relocated instead of vertices of the LLSV. The stabilization process also follows the same idea of the VP Score which is calculated the same way. The difference is that now only vertices with a VP Score less than zero are considered as candidate vertices. The HCRV is made up of the vertices with the highest number of remote vertices. But only vertices, where the partition they would be relocated to does not already exceed the edge/vertex imbalance ratio, end up in the final HCRV. Furthermore, vertices that would be relocated to a partition that would then exceed the vertex imbalance are removed from the HCRV. This ensures that this phase does not lead to a further imbalance. \\
-Each iteration of this phase works the same as an iteration of the QCLP phase. The only difference is that the candidate vertices are found differently, as described. Therefore, Figure \ref{iteration} also illustrates an iteration of this stage after exchanging LLSV for HCRV, respectively. This phase runs through a fixed amount of $\gamma$ iterations, which is user-specified. \\
-Overall, this phase maintains the near-perfect vertex balance achieved in the QCLP phase while preventing a further increase in edge imbalance at the same time. In addition to that, the local optima problem is resolved, and the edge cut is improved even further.
-\subsection{Edge balancing partitioning process}
-This final phase of the algorithm serves the purpose of maintaining the edge balance restriction while also keeping the near-perfect vertex balance achieved in the preceding phases. To achieve the needed edge balance, this phase ignores the edge cut quality completely and focuses on the balance only. Partitions with too many edges relocate vertices randomly to partitions that are below the edge limit in descending order of outdegree. This process is repeated until the edge balance restriction is fulfilled. Therefore, this phase has a negative impact on the edge cut, as this process does not take the edge cut into consideration. However, this ensures that all balancing restrictions are fulfilled. This marks the end of the algorithm. Overall, the algorithm solves the partitioning problem with a high focus on keeping the balancing restrictions as well as trying to achieve a high edge cut quality during the iterations of the first two phases.
-\section{Evaluation of the algorithm}
-The described algorithm in Section \numprint{4} was benchmarked by experiments and was compared to other partitioners. In this section, the experimental structure is explained first. After that, the results of those experiments will be presented. This chapter closes with ideas that could improve ~the ~algorithm.
-\subsection{Experiment}
-\begin{figure}[bt!]
-     \centering
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3 cm]{small_exec.png}
-         \caption{Execution time on small cluster}
-         \label{small_exec}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3cm]{large_cut.png}
-         \caption{Edge cut on large cluster}
-         \label{large_cut}
-     \end{subfigure}
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3 cm]{small_vertex.png}
-         \caption{Vertex balance on small cluster}
-         \label{small_vertex}
-     \end{subfigure}
-     \hfill
-     \begin{subfigure}[b]{0.45\textwidth}
-         \centering
-         \includegraphics[width=6cm,height = 3cm]{small_edge.png}
-         \caption{Edge balance on small cluster}
-         \label{small_edge}
-     \end{subfigure}
-     \caption{Results of the experiment}
-     \label{combi}
-\end{figure}
-First of all, the other partitioning frameworks used for the experiment are presented. Metis \cite{Metis} and ParMetis \cite{ParMetis} are high-quality partitioners that use the multilevel approach. These partitioners are used in a variety of experiments as they are known for their speed and high quality. While Metis only works on single machines, ParMetis is a parallel version of Metis. This provides an excellent comparison to the widely spread multilevel approach. In addition to that, XtraPuLP \cite{XtraPuLP}, which is a parallel version of PuLP \cite{PuLP}, is used to provide a comparison to another LP-based partition approach. All of the partitioners were run with a vertex imbalance of \numprint{3}\% and an \hbox{edge imbalance of \numprint{30}\%.} \\
-Furthermore, two different clusters were used for the experiment, a smaller one and a large one. In total, eight different graphs of different sizes reaching from millions to billions of edges were partitioned. The seven smaller graphs were partitioned on the small cluster, while the three largest graphs were run on the large cluster.\\
-Looking at the execution times shown in Figure \ref{small_exec}, it is clear that the proposed algorithm runs fastest, followed by XtraPuLP, and then, with a significant distance, Metis and ParMetis finish. Another aspect that can be noticed immediately is that Metis and ParMetis did not compute for the two largest graphs run on the small cluster. This and the high difference in runtime can be explained by the fact that the multilevel approach has high memory consumption, as described in Section \numprint{3}.\numprint{2}. The clusters provide only a very limited amount of memory per vertex, leading to the measured struggle of the two multilevel partitioners. Additionally, the proposed algorithm is the only framework able to complete the partition of the largest graph on the small cluster, which is not shown in the figures. \\
-Taking a look at the edge cut quality shown in Figure \ref{large_cut}, it becomes clear that the proposed algorithm is close to the quality of Metis, but is outperformed by XtraPuLP for the largest graph. This shows that the algorithm is capable of producing high-quality partitions for smaller graphs. \\
-Looking at the balancing restrictions in Figures \ref{small_vertex} and \ref{small_edge}, it is clear that ParMetis is the only partitioner that exceeds the limits for the vertex balance significantly, while XtraPuLP shows the same behavior for edge balancing. The other partitioners were able to fulfill the restrictions. \\
-Overall, the experiments show the excellent scalability of the proposed algorithm, as it outperforms the other partitioners on the limited resources of the small cluster. Achieving high scalability is also the main focus of the algorithm, marking this as a great success of development.
-\subsection{Evaluation and possible improvements}
-The results of the experiment make clear that the main goal of the proposed algorithm, which was producing a partitioner for large-scale graph data, was successful. Especially on clusters with limited memory resources, the proposed algorithm provides excellent execution time and balancing and outperforms other partitioners while maintaining a high edge cut quality. An additional experiment on a cluster with higher memory resources is missing in the paper. Thus, no fair comparison to the multilevel approach is given. Additionally, the approach of using a edge balancing metric instead of using the vertices' degree as weight is unusual. However, there could be issues with huge data for the edge cut quality, as can be seen in the results for the largest graph, where XtraPuLP showed a higher quality. \\
-This leads to possible improvements that could be made to the algorithm. The edge balancing phase of the algorithm seems to be the best point for improvement, as during this phase the edge cut property is completely ignored. While this makes that phase really fast, the edge cut can suffer severely during this phase. Improving that phase would mean slowing it down, but looking at the excellent execution time of the algorithm, increasing the runtime for higher edge cut quality should be taken into consideration. \\
-Concretely, an additional execution mode should be introduced for the algorithm. That way, the user could decide whether the fast normal mode or a mode with increased edge cut quality should be run. As described in Section \numprint{4}.\numprint{5}, the edge balancing phase only sorts vertices in partitions with too many edges by outdegree and relocates them randomly in descending order of outdegree. This additional mode could take the latest VP Score into consideration, which was communicated during the stabilization phase. That way, there should be a calculation introduced that looks at the vertices with the highest outdegree and checks if that vertex has a high VP Score. If that is the case, there should be a further check to see if it is beneficial to relocate other vertices with lower outdegrees instead. Additionally, instead of relocating the vertices to another partition with fewer edges at random, it should be checked for which of the partitions a relocation is most beneficial for the edge cut. Overall, this could fix the issue of low edge cut quality seen in the experiment on the largest graph while increasing the runtime. 
-\section{Conclusion}
-All in all, the paper introduces a partitioner that performs really well on clusters with low memory resources. In that environment, multilevel-based partitioners struggle or do not compute a solution at all, making this algorithm a great alternative. The quick runtime is surely an argument for using this algorithm in all kinds of applications where a fast partitioner is needed. In addition to that, the algorithm is able to fulfill the given balancing restraints nearly perfectly. Taking the development of graph data getting larger over time into consideration, the proposed algorithm could become essential in the future as it shows an excellent scalability.  In the future, improvements to the edge cut of the algorithm could lead to even more use cases for this framework, leading to usage in a variety of applications.
+\section{Related Work}
+This chapter focuses on the Deep Graph Learn (DGL) framework \cite{DGL} that was chosen as the GNN framework. In the following, the most important features of DGL are explained that were used to achieve the experimental results of Section 5. In general, DGL provides the possibility to the user to define their own GNN modules. Additionally, one can use the built-in GNN model frameworks. In the course of the experiments GraphSAGE \cite{GraphSAGE} and GraphConv(?) \cite{NC} were used in particular. \\
+To process and train on huge graph data sets, DGL utilizes the popular graph partitioner Metis \cite{Metis} per default. With this partitioner the graphs can be partitioned first and then the training can be run on every partition in parallel by the use of multiple CPUs. This can achieve a significant speed up of the whole process. Now the main focus of this report is to investigate how the type and quality of the used graph partitioner can impact the runtime of the training process. For that, the graph partitioner KaHIP \cite{KaHIP} is used. Comparing the results of typical DGL training routines with using Metis and KaHIP can illustrate if the common graph partitioning quality measures also apply for GNNs. \\
+In the course of this report two types of DGL training are run for this comparison: node classification and link prediction. These are the most common tasks of DGL and can be explained as follows. Semi-supervised node classification, as defined in detail by Kipf et al. \cite{NC}, is the task of prediction the category of each node. For that, a small amount of labeled nodes of the graph is given to the model determining categories for these sample nodes. The GNN then utilizes these categories together with the connectivity information of the graph to predict the categories for the rest of the nodes. \\%maybe cora as example
+Link prediction is the task of predicting whether there is an edge between two nodes in a graph or not. This tasks does not depend on additional sample data as the node classification task. Instead, the input graph itself provides the sample data. A small part of the existing edges of the graph are taken as positive examples. The same number of non-edges from negative examples. Then, the GNN evaluates if there is an edge or an non-edge between two nodes for all the nodes in the graph based on the sampled example data.
+\section{Implementation}
+
+\section{Experiment}
+
 \bibliographystyle{plainnat}
 \bibliography{references.bib}
 
