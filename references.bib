@@ -22,105 +22,145 @@
 @String{spaa   = "ACM Symposium on Parallel Architectures and Algorithms"}
 @String{stoc   = "ACM Symposium on the Theory of Computing"}
 
-@Article{Main,
-  author={Bae, Minho and Jeong, Minjoong and Oh, Sangyoon},
-  journal={IEEE Access}, 
-  title={Label Propagation-Based Parallel Graph Partitioning for Large-Scale Graph Data}, 
-  year={2020},
-  volume={8},
-  number={},
-  pages={72801-72813},
-  keywords={Partitioning algorithms;Frequency modulation;Scalability;Topology;Convergence;Measurement;Data processing;graph data;parallel processing;partitioning algorithms},
-  doi={10.1109/ACCESS.2020.2987355}}
-
-@Inproceedings{FM,
-  author={Fiduccia, C.M. and Mattheyses, R.M.},
-  booktitle={19th Design Automation Conference}, 
-  title={A Linear-Time Heuristic for Improving Network Partitions}, 
-  year={1982},
-  volume={},
-  number={},
-  pages={175-181},
-  keywords={Partitioning algorithms;Iterative algorithms;Data structures;Research and development;Computer networks;Approximation algorithms;Polynomials;Design automation;Pins},
-  doi={10.1109/DAC.1982.1585498}}
-
-@Article{KL,
-  author={Kernighan, B. W. and Lin, S.},
-  journal={The Bell System Technical Journal}, 
-  title={An efficient heuristic procedure for partitioning graphs}, 
-  year={1970},
-  volume={49},
-  number={2},
-  pages={291-307},
-  keywords={},
-  doi={10.1002/j.1538-7305.1970.tb01770.x}}
-
-@Article{Metis,
-  author = {Karypis, George and Kumar, Vipin},
-  title = {A Fast and High Quality Multilevel Scheme for Partitioning Irregular Graphs},
-  journal = {SIAM Journal on Scientific Computing},
-  volume = {20},
-  number = {1},
-  pages = {359-392},
-  year = {1998},
-  doi = {10.1137/S1064827595287997},
+@inproceedings{ParMetis,
+  author       = {George Karypis and
+                  Vipin Kumar},
+  title        = {Parallel Multilevel k-way Partitioning Scheme for Irregular Graphs},
+  booktitle    = {Proceedings of the 1996 {ACM/IEEE} Conference on Supercomputing, November
+                  17-22, 1996, Pittsburgh, PA, {USA}},
+  pages        = {35},
+  publisher    = {{IEEE} Computer Society},
+  year         = {1996},
+  url          = {https://doi.ieeecomputersociety.org/10.1109/SC.1996.32},
+  doi          = {10.1109/SC.1996.32},
+  timestamp    = {Fri, 24 Mar 2023 00:04:26 +0100},
+  biburl       = {https://dblp.org/rec/conf/sc/KarypisK96.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
-@Inproceedings{ParMetis,
-  author={Karypis, G. and Kumar, V.},
-  booktitle={Supercomputing '96:Proceedings of the 1996 ACM/IEEE Conference on Supercomputing}, 
-  title={Parallel Multilevel k-way Partitioning Scheme for Irregular Graphs}, 
-  year={1996},
-  volume={},
-  number={},
-  pages={35-35},
-  keywords={Partitioning algorithms;Sparse matrices;Concurrent computing;Military computing;Computer science;Testing;Finite element methods;Transportation;Parallel algorithms;Contracts;Parallel Graph Partitioning;Multilevel Partitioning Methods;Spectral Partitioning Methods;Kernighan-Lin Heuristic;Parallel Sparse Matrix Algorithms},
-  doi={10.1109/SUPERC.1996.183537}}
 
-@Inproceedings{XtraPuLP,
-  author={Slota, George M. and Rajamanickam, Sivasankaran and Devine, Karen and Madduri, Kamesh},
-  booktitle={2017 IEEE International Parallel and Distributed Processing Symposium (IPDPS)}, 
-  title={Partitioning Trillion-Edge Graphs in Minutes}, 
-  year={2017},
-  volume={},
-  number={},
-  pages={646-655},
-  keywords={Partitioning algorithms;Scalability;Instruction sets;Measurement;Memory management;Process control;Computer science},
-  doi={10.1109/IPDPS.2017.95}}
-
-@Inproceedings{PuLP,
-  author={Slota, George M. and Madduri, Kamesh and Rajamanickam, Sivasankaran},
-  booktitle={2014 IEEE International Conference on Big Data (Big Data)}, 
-  title={PuLP: Scalable multi-objective multi-constraint partitioning for small-world networks}, 
-  year={2014},
-  volume={},
-  number={},
-  pages={481-490},
-  keywords={Partitioning algorithms;Communities;Heuristic algorithms;Clustering algorithms;Measurement;Layout;Memory management},
-  doi={10.1109/BigData.2014.7004265}}
-
-@Article{BSP,
-  title={A bridging model for parallel computation},
-  author={Leslie G. Valiant},
-  journal={Commun. ACM},
-  year={1990},
-  volume={33},
-  pages={103-111},
-  url={https://api.semanticscholar.org/CorpusID:15655597}
+@article{Metis,
+  author       = {George Karypis and
+                  Vipin Kumar},
+  title        = {A Fast and High Quality Multilevel Scheme for Partitioning Irregular
+                  Graphs},
+  journal      = {{SIAM} J. Sci. Comput.},
+  volume       = {20},
+  number       = {1},
+  pages        = {359--392},
+  year         = {1998},
+  url          = {https://doi.org/10.1137/S1064827595287997},
+  doi          = {10.1137/S1064827595287997},
+  timestamp    = {Thu, 28 Apr 2022 17:42:57 +0200},
+  biburl       = {https://dblp.org/rec/journals/siamsc/KarypisK98.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
-@Inbook{Junghanns2017,
-  author="Junghanns, Martin
-  and Petermann, Andr{\'e}
-  and Neumann, Martin
-  and Rahm, Erhard",
-  editor="Zomaya, Albert Y.
-  and Sakr, Sherif",
-  title="Management and Analysis of Big Graph Data: Current Systems and Open Challenges",
-  bookTitle="Handbook of Big Data Technologies",
-  year="2017",
-  publisher="Springer International Publishing",
-  address="Cham",
-  pages="457--505",
-  isbn="978-3-319-49340-4",
-  doi="10.1007/978-3-319-49340-4_14",
-  url="https://doi.org/10.1007/978-3-319-49340-4_14"
+
+@inproceedings{LP,
+  author       = {Muhan Zhang and
+                  Yixin Chen},
+  editor       = {Samy Bengio and
+                  Hanna M. Wallach and
+                  Hugo Larochelle and
+                  Kristen Grauman and
+                  Nicol{\`{o}} Cesa{-}Bianchi and
+                  Roman Garnett},
+  title        = {Link Prediction Based on Graph Neural Networks},
+  booktitle    = {Advances in Neural Information Processing Systems 31: Annual Conference
+                  on Neural Information Processing Systems 2018, NeurIPS 2018, December
+                  3-8, 2018, Montr{\'{e}}al, Canada},
+  pages        = {5171--5181},
+  year         = {2018},
+  url          = {https://proceedings.neurips.cc/paper/2018/hash/53f0d7c537d99b3824f0f99d62ea2428-Abstract.html},
+  timestamp    = {Thu, 12 Jan 2023 15:45:59 +0100},
+  biburl       = {https://dblp.org/rec/conf/nips/ZhangC18.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
 }
+
+@article{GraphSAGE,
+  author       = {William L. Hamilton and
+                  Rex Ying and
+                  Jure Leskovec},
+  title        = {Inductive Representation Learning on Large Graphs},
+  journal      = {CoRR},
+  volume       = {abs/1706.02216},
+  year         = {2017},
+  url          = {http://arxiv.org/abs/1706.02216},
+  eprinttype    = {arXiv},
+  eprint       = {1706.02216},
+  timestamp    = {Mon, 13 Aug 2018 16:46:12 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/HamiltonYL17.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{DGL,
+  author       = {Minjie Wang and
+                  Lingfan Yu and
+                  Da Zheng and
+                  Quan Gan and
+                  Yu Gai and
+                  Zihao Ye and
+                  Mufei Li and
+                  Jinjing Zhou and
+                  Qi Huang and
+                  Chao Ma and
+                  Ziyue Huang and
+                  Qipeng Guo and
+                  Hao Zhang and
+                  Haibin Lin and
+                  Junbo Zhao and
+                  Jinyang Li and
+                  Alexander J. Smola and
+                  Zheng Zhang},
+  title        = {Deep Graph Library: Towards Efficient and Scalable Deep Learning on
+                  Graphs},
+  journal      = {CoRR},
+  volume       = {abs/1909.01315},
+  year         = {2019},
+  url          = {http://arxiv.org/abs/1909.01315},
+  eprinttype    = {arXiv},
+  eprint       = {1909.01315},
+  timestamp    = {Fri, 21 Jun 2024 12:54:57 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/abs-1909-01315.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{NC,
+  author       = {Thomas N. Kipf and
+                  Max Welling},
+  title        = {Semi-Supervised Classification with Graph Convolutional Networks},
+  journal      = {CoRR},
+  volume       = {abs/1609.02907},
+  year         = {2016},
+  url          = {http://arxiv.org/abs/1609.02907},
+  eprinttype    = {arXiv},
+  eprint       = {1609.02907},
+  timestamp    = {Mon, 13 Aug 2018 16:48:31 +0200},
+  biburl       = {https://dblp.org/rec/journals/corr/KipfW16.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{KaHIP,
+  author       = {Peter Sanders and
+                  Christian Schulz},
+  editor       = {Vincenzo Bonifaci and
+                  Camil Demetrescu and
+                  Alberto Marchetti{-}Spaccamela},
+  title        = {Think Locally, Act Globally: Highly Balanced Graph Partitioning},
+  booktitle    = {Experimental Algorithms, 12th International Symposium, {SEA} 2013,
+                  Rome, Italy, June 5-7, 2013. Proceedings},
+  series       = {Lecture Notes in Computer Science},
+  volume       = {7933},
+  pages        = {164--175},
+  publisher    = {Springer},
+  year         = {2013},
+  url          = {https://doi.org/10.1007/978-3-642-38527-8\_16},
+  doi          = {10.1007/978-3-642-38527-8\_16},
+  timestamp    = {Sun, 04 Aug 2024 19:40:14 +0200},
+  biburl       = {https://dblp.org/rec/conf/wea/SandersS13.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+
+
+
