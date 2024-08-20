@@ -34,7 +34,7 @@
 \acmPrice{}
 \acmISBN{}
 
-\title{Algorithm Engineering Advanced Practical: Analysing the Impact of Graph Partitioning on Graph Neural Network Training}
+\title{Algorithm Engineering: Analysing the Impact of Graph Partitioning on Graph Neural Network Training}
 \author{Eric Waldherr}
 \email{ft278@stud.uni-heidelberg.de, Computer Science,
 4231309}
@@ -67,10 +67,22 @@ The input of the problem is a graph $G = (V,E)$ and $k\in \mathbb{N}$. To solve 
 To achieve the highest possible parallelization effectiveness, these partitions need to be balanced to distribute the resulting computation workload equally among the computation units. For that reason, the problem includes a vertex balancing restriction: $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ \leq (1 + \delta) \lceil \frac{\vert V \vert }{k} \rceil $, with $\delta \in \mathbb{R}$ called vertex imbalance. Figure \ref{partition} shows a balanced partition. \\
 Often, it can be beneficial to balance the edges of the graph as well. This is done by assigning the nodes their outdegree + 1 as weight. The outdegree of a node $v_{i}$ is defined as $deg(v_{i}) = \sum{(u,v)\in E : u = v_{i} \vee v = v_{i}}$.
 \begin{figure}[bt!]
-\centering
-\caption{Example of a balanced partition}
-\label{partition}
-\includegraphics[width=4.75cm,height=2.5cm]{partition_example.png}
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=3.5cm,height = 2 cm]{partition_example.png}
+         \caption{Example balanced partition}
+         \label{partition}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=2.8cm,height = 2cm]{node_weights.png}
+         \caption{Example of node weights}
+         \label{weights}
+     \end{subfigure}
+     \caption{Example of basic definitions}
+     \label{combi}
 \end{figure}
 \section{Related Work}
 This chapter focuses on the Deep Graph Learn (DGL) framework \cite{DGL} that was chosen as the GNN framework. In the following, the most important features of DGL are explained that were used to achieve the experimental results of Section 5. In general, DGL provides the possibility to the user to define their own GNN modules. Additionally, one can use the built-in GNN model frameworks. In the course of the experiments GraphSAGE \cite{GraphSAGE} and GraphConv(?) \cite{NC} were used in particular. \\
@@ -79,10 +91,16 @@ In the course of this report two types of DGL training are run for this comparis
 Link prediction is the task of predicting whether there is an edge between two nodes in a graph or not. This tasks does not depend on additional sample data as the node classification task. Instead, the input graph itself provides the sample data. A small part of the existing edges of the graph are taken as positive examples. The same number of non-edges from negative examples. Then, the GNN evaluates if there is an edge or an non-edge between two nodes for all the nodes in the graph based on the sampled example data.
 \section{Implementation}
 This section illustrates how KaHIP was integrated into the DGL framework and what changes needed to be made to DGL to achieve that.
+\subsection{Integration of KaHIP to DGL}
 First of all, KaHIP was added to the third party frameworks of DGL. After that, it was included in the building process ensuring it gets compiled correctly. In DGL, most more complex functionalities are realized as follows. There exists a file for each functionality where a function is defined that can be called later outside of that individual file. In that way, a new function was created that calls the main partitioner of KaHIP, named kaffpa. The kaffpa function needs all the conncetivity information of the graph in order to work properly. In detail, it needs the amount of nodes in the graph as well as the source and destiny node for every edge in the graph. This information was extracted by the respective DGL graph class using the already defined methods of that class. Additionally, kaffpa needs to be configured, mainly one of the six modes of that function needs to be chosen. For the start, the FAST mode was chosen by default. At that point of time this was sufficient as the focus lied on getting KaHIP running then, the detailed configurations followed at a later stage.\\
-After this first crucial step was done, a crucial problem occurred. All the main information of the graph is given to kaffpa in four arrays of integers. The conflict here was that DGL saves this information in 64-bit arrays while the kaffpa function expects 32-bit arrays. To resolve this conflict, either DGL or KaHIP needed to be changed to accept the integer size of the other component respectively. As changing DGL would result in changing significantly more code, KaHIP was changed instead. This change consisted of changing the function signatures of 21 functions inside of KaHIP distributed over 10 files as well as changing type definitions in its definition-header to accept 64 bit integers for the ids of nodes and edges as well as their weights. These changes achieved their goal and KaHIP could now be called successfully inside of DGL using 64-bit edges and nodes.\\
+After this first crucial step was done, a crucial problem occurred. All the main information of the graph is given to kaffpa in four arrays of integers. The conflict here was that DGL saves this information in 64-bit arrays while the kaffpa function expects 32-bit arrays. To resolve this conflict, either DGL or KaHIP needed to be changed to accept the integer size of the other component respectively. As changing DGL would result in changing significantly more code, KaHIP was changed instead. This change consisted of changing the function signatures of 21 functions inside of KaHIP distributed over 10 files as well as changing type definitions in its definition-header to accept 64 bit integers for the ids of nodes and edges as well as their weights. These changes achieved their goal and KaHIP could now be called successfully inside of DGL using 64-bit edges and nodes. \\
+The next step was to include this new functionality to the corresponding partition utilities file. Here, an additional setup and a cleanup step is necessary before and after the actual partitioning function, that was implemented as described above, is called. First, the graph needs to be transformed to a bidirectional graph. This means that for every $(u,v) \in E$ the corresponding backward edge $(v,u)$ is added to $E$. This is a default step that is done before partitioning in DGL and is also done before every partition call of Metis. Then, after the partition concludes, the halo nodes of each partition are determined. These nodes are then added as to the partitions' halo nodes respectively. This step in the implementation opened the possibility to call a KaHIP partition in DGL and then store the result and continue working on the different partitions at a later stage.
+Even though a KaHIP partition could be conducted at this stage of development, the feature to actually utilize the partition in a distributed parallel context was still to implement. A function was already provided by DGL, but so far only for a Metis partition call. The function called a Metis partition per default. Every partition of the result was then stored under a destination directory in its own file. These individual partitions can then be loaded independently, and then be used by different computation units in parallel. The possibility to choose from Metis and KaHIP when calling this function was enabled by adding a additional parameter that determines which partitioner to call. This concluded the integration of KaHIP to the DGL framework and each of the two partitioners could be called by the user. \\
+\subsection{Addtitional Changes for Experiment}
+Further features were added to the partitioning process of DGL to provide a more thorough analysis in the conducted experiments. Edge balancing is a crucial quality measure of a graph partition. For that reason, the next goal was to add $deg(v) + 1$ as a weight to each node $n \in V$. This was achieved by adding an additional setup step before calling a partition, where the information of the outdegree was extracted from the graph. This could be done through a function, provided by DGL, that returns a tensor. Each entry of that tensor represents the outdegree of a node in the graph. Then the value 1 needed to be added to each of those entries. This tensor could then be utilized by handing it to the partitioners by an additional parameter. As this method of edge balancing is very common, the partitioners accept these arrays and are able to return a partition that is balanced based on that array. This feature was added to investigate even further how traditional partition quality measures impact the performance of GNNs. \\
+As KaHIP provides six different execution modes in total: FAST, ECO, STRONG, FASTSOCIAL, ECOSOCIAL, STRONGSOCIAL. So far, the only the FAST mode was available at the current implementation stage as mentioned in Section 4.1. To be able to choose from these modes, an additional parameter was added to all of the functions that include the KaHIP partitioning call. This would create an insight of the impact of the different modes on different types of graphs for the experiment.
 \section{Experiment}
-
+\subsection{Experimental Environment}
 \section{Conclusion}
 
 \bibliographystyle{plainnat}
