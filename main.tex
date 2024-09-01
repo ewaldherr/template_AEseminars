@@ -211,7 +211,10 @@ The two training types were executed as follows: First the graph is partitioned.
      \caption{Produced edge cut of the algorithms}
      \label{cut}
 \end{figure}
-
+For this part of the experiment, the graphs were partitioned into four parts. The produced edge cut is listed in Figure \ref{cut_4}. In most cases, the KaHIP modes FAST and ECO resulted in the highest edge cut. Then, Metis and the modes FASTSOCIAL and ECOSOCIAL follow. The best edge cut was achieved by the STRONG and STRONGSOCIAL mode of KaHIP. However, these low edge cuts come with the cost of a very high partitioning time leading to poor execution times as illustrated in Figure \ref{nc_in_4}.\\
+Here, the execution times are shown for every algorithm for each graph with and without vertex weights. Additionally, this illustration shows that overall the execution time of Metis and the FASTSOCIAL mode of KaHIP performed the best. \\
+Figure \ref{nc_ex_4} shows the execution times as Figure \ref{nc_in_4}, but without including the time the partitioning algorithm run, respectively. This diagram illustrates the actual impact of the graph partitioning on the GNN training time. It shows that the training after a Metis partition is beaten by the STRONG, FASTSOCIAL, ECOSOCIAL and STRONGSOCIAL mode of KaHIP in most cases. These four modes achieved better edge cut quality overall than Metis. This shows, that the edge cut metric has a significant impact on GNN node classification training.\\
+Another aspect this Figure \ref{lp_ex_4} illustrates is, that using vertex weights to balance the partitions has a significant positive impact on GNN training. 
 \subsection{Evaluation of Link Prediction Results}
 \begin{figure}[bt!]
      \centering
