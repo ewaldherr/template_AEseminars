@@ -68,7 +68,7 @@ This chapter focuses on giving the most important definitions needed to understa
 The graph partitioning problem is a very fundamental problem in modern computer science. By initially partitioning a large graph first before running an algorithm on it, one can then run algorithms on the resulting partitions in parallel. This and the quality of the partition itself can have a significant impact on the runtime of an algorithm. \\ 
 The input to the problem is a graph $G$ and $k\in \mathbb{N}$. To solve the problem, $G$ needs to be partitioned into $k$ partitions \hbox{$V_{1},...,V_{k}$ such that $V_{1}\cup...\cup V_{k} = V$} and $V_{i}\cap V_{j} = \emptyset\ \forall i,j\in \{1,...,k\}, i \neq j$. The primary objective of the partitioning algorithm is to minimize the edge cut, which can be defined as $\vert \{(u,v)\in E : u\in V_{i},\ v\in V_{j} \text{ and } i\neq j \}\vert$. This has the effect of reducing the amount of communication required between the various workers, which can significantly reduce the execution time of operations or algorithms run on the partitioned graph.  \\
 In order to achieve the highest possible parallelization effectiveness, these partitions need to be balanced to distribute the resulting computation workload equally among the computation units. For that reason, the problem includes a vertex balancing restriction: $\forall i\in \{1,...,k\} : \vert V_{i}\vert \ \leq (1 + \delta) \lceil \frac{\vert V \vert }{k} \rceil $, with $\delta \in \mathbb{R}$ called vertex imbalance. Figure \ref{partition} shows a balanced partition. \\
-Frequently, it can be beneficial to balance the edges of the graph as well. This is done by assigning the nodes their outdegree plus one as weight. The outdegree of a node $v_{i}$ is defined as $deg(v_{i}) = \sum{(u,v)\in E : u = v_{i} \vee v = v_{i}}$. Figure \ref{weights} illustrates an example graph where each node $v$ is labeled with its respective weight, which is $deg(v) + 1$. \\
+In many cases, it is beneficial to balance the edges of the graph as well. This is done by assigning the nodes their outdegree plus one as weight. The outdegree of a node $v_{i}$ is defined as $deg(v_{i}) = \sum{(u,v)\in E : u = v_{i} \vee v = v_{i}}$. Figure \ref{weights} illustrates an example graph where each node $v$ is labeled with its respective weight, which is $deg(v) + 1$. \\
 Furthermore, the distributed training of GNNs is not limited to the nodes of a partition itself. Each partition additionally comprises a set of halo nodes. A node $h \in V$ is called a halo node of a partition $V_{i}$ if $\exists (v,h) \in E \vee \exists (h,v) \in E$, for $v \in V_{i}, h \notin V_{i}$. In other words, a halo node of a partition shares an edge with one of the nodes in that partition without being part of the partition itself. These halo nodes are included in the training of each partition to increase the quality of the result. 
 \subsection{Graph Neural Network Training}
 How GNNs are trained in detail is a highly complex topic. In this instance, only the most important aspects are illustrated. The core of the training of GNNs are features. Each node $v \in V$ gets assigned a node feature $x_{v} \in \mathbb{R}^{d}$, with $d$ called feature size. \\
@@ -149,7 +149,7 @@ KaHIP provides six distinct execution modes in total. The available modes are FA
  \hline
  Distribution & single & fat \\
  CPUs & \multicolumn{2}{c}{Intel(R) Xeon(R) Gold 6230 CPU @ 2.10GHz} \\ 
- \# of CPUs & 64 & 64 \\ 
+ \# of CPUs & 32 & 32 \\ 
  Memory & 16GB & 356GB \\
 \end{tabular}
 \caption{Specifications of the used cluster}
@@ -173,9 +173,64 @@ In this chapter, the experimental environment is described in detail. Afterwards
 \subsection{Experimental Environment}
 The experiment was run on the BwUniCluster2.0. For the node classification the single distribution and for the link prediction the fat distribution of the cluster was used respectively. Details of configurations of the cluster for the experiment is displayed in Table \ref{hw}.\\
 In total, three graphs were used for the experiment. Their sizes, feature specifications and amount of different node categories are listed in Table \ref{graphs}. The original Toloker and Questions graph only have half of the edges shown in Table \ref{graphs}. DGL already included these two graphs into their example graph data sets and added all the backward edge for each edge on the original graph.\\
-The two training types were executed as follows: First the graph is partitioned. Subsequently, the actual training for each partition is run in parallel using PyTorch \cite{PyTorch}. PyTorch provides functions to run GNN training in parallel by creating a new process for each partition, which were utilized for the experiment.
+The two training types were executed as follows: First the graph is partitioned. Subsequently, the actual training for each partition is run in parallel using PyTorch \cite{PyTorch} and 100 epochs. PyTorch provides functions to run GNN training in parallel by creating a new process for each partition, which were utilized for the experiment. The training was repeated three times for each instance. Afterwards, the average of the three runs was determined and used for the diagrams of the following subchapters. Each graph was partitioned twice using the same configurations (for node classification and for link prediction). The average edge cut produced out of these two partition processes was taken for the edge cut results, shown in Figure \ref{cut}.
 \subsection{Evaluation of Node Classification Results}
+\begin{figure}[bt!]
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3 cm]{nc_in_4.png}
+         \caption{Partitioning time included}
+         \label{nc_in_4}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3cm]{nc_ex_4.png}
+         \caption{Partitioning time excluded}
+         \label{nc_ex_4}
+     \end{subfigure}
+     \caption{Execution time of node classification using 4 partitions}
+     \label{nc_results}
+\end{figure}
+\begin{figure}[bt!]
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3 cm]{edge-cut_4.png}
+         \caption{Edge cut for 4 partitions}
+         \label{cut_4}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3cm]{edge-cut_8.png}
+         \caption{Edge cut for 8 partitions}
+         \label{cut_8}
+     \end{subfigure}
+     \caption{Produced edge cut of the algorithms}
+     \label{cut}
+\end{figure}
+
 \subsection{Evaluation of Link Prediction Results}
+\begin{figure}[bt!]
+     \centering
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3 cm]{lp_in_8.png}
+         \caption{Partitioning time included}
+         \label{lp_in_4}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.45\textwidth}
+         \centering
+         \includegraphics[width=5cm,height = 3cm]{lp_ex_8.png}
+         \caption{Partitioning time excluded}
+         \label{lp_ex_4}
+     \end{subfigure}
+     \caption{Execution time of link prediction using 8 partitions}
+     \label{lp_results}
+\end{figure}
 \section{Conclusion}
 \section{Acknowledgments}
 The author thanks Adil Chhabra, Ernestine Grossmann, Kenneth Langedal and Christian Schulz for supervising and supporting the project. Furthermore, the author acknowledges the support by the state of Baden-Württemberg through BwHPC.
